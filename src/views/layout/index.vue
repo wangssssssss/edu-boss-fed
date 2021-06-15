@@ -5,18 +5,27 @@
     <app-aside></app-aside>
   </el-aside>
   <el-container>
-    <el-header>Header</el-header>
-    <el-main>Main</el-main>
+    <el-header>
+      <!-- 头部组件 -->
+      <app-header></app-header>
+    </el-header>
+    <el-main>
+      <!-- 设置子路由的出口 -->
+      <router-view></router-view>
+    </el-main>
   </el-container>
 </el-container>
 </template>
 <script>
 // 引入侧边栏组件
 import AppAside from './components/AppAside.vue'
+// 引入头部组件
+import AppHeader from './components/AppHeader.vue'
 export default {
   name: 'Layout',
   components: {
-    AppAside
+    AppAside,
+    AppHeader
   }
 }
 </script>
@@ -29,7 +38,7 @@ export default {
     background-color: #d3dce6;
   }
   .el-header {
-    background-color: #d3c0d1;
+    background-color: #fff;
   }
   .el-main {
     background-color: #e9eef3;
