@@ -1,22 +1,11 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
-// 引入路由中需要使用得当组件功能 @代表src目录
-// import Login from '@/views/login/index'
-// import Layout from '@/views/layout/index'
-// import Home from '@/views/home/index'
-// import Advert from '@/views/advert/index'
-// import AdvertSpace from '@/views/advert-space/index'
-// import Course from '@/views/course/index'
-// import ErrorPage from '../views/error-page/index'
-// import Menu from '../views/menu/index'
-// import Resource from '../views/resource/index'
-// import Role from '../views/role/index'
-// import User from '../views/user/index'
+// 引入store
+import store from '@/store'
 
 Vue.use(VueRouter)
 
-// 路由规则
+// 路由规则 （添加需要验证的requiresAuth信息）
 const routes = [
   {
     path: '/login',
@@ -26,6 +15,10 @@ const routes = [
   {
     path: '/',
     component: () => import(/* webpackChunkName: 'layout' */'@/views/layout/index.vue'),
+    // 直接给某个路由设置，这时内部的子路由都需要验证（包含当前路由）
+    meta: {
+      requiresAuth: true
+    },
     children: [
       {
         path: '',
@@ -78,6 +71,26 @@ const routes = [
 
 const router = new VueRouter({
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  // console.log('to', to)
+  // console.log('from', from)
+  // next()
+  // 验证 to 路由是否需要进行身份验证
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // 验证 vuex 的 store 中的登录信息是否存在
+    // debugger
+    if (!store.state.user) {
+      // 未登录 跳转到登录页
+      next({ path: '/login' })
+    } else {
+      next()
+    }
+  } else {
+    console.log('当前页面不需要认证')
+    next() // 确保一定要调用 next()
+  }
 })
 
 export default router
