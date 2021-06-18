@@ -59,6 +59,12 @@ const routes = [
         path: '/user',
         name: 'user',
         component: () => import(/* webpackChunkName: 'user' */'@/views/user/index.vue')
+      },
+      // 添加菜单路由组件
+      {
+        path: '/menu/create',
+        name: 'menu-create',
+        component: () => import(/* webpackChunkName: 'menu-create' */'@/views/menu/create.vue')
       }
     ]
   },
@@ -83,10 +89,15 @@ router.beforeEach((to, from, next) => {
     // debugger
     if (!store.state.user) {
       // 未登录 跳转到登录页
-      next({ path: '/login' })
-    } else {
-      next()
+      return next({
+        name: 'login',
+        query: {
+          // 将路由的 fullPath 传递给 login 页面
+          redirect: to.fullPath
+        }
+      })
     }
+    next()
   } else {
     console.log('当前页面不需要认证')
     next() // 确保一定要调用 next()

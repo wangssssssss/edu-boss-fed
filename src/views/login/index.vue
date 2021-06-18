@@ -82,12 +82,11 @@ export default {
         this.isLoginLoading = false
         // 3.响应处理
         if (data.state === 1) {
-          this.$router.push({
-            name: 'home'
-          })
-          this.$message.success(data.message)
           // 将用户信息存储到 VUEX 中
           this.$store.commit('setUser', data.content)
+          this.$message.success(data.message)
+          // 根据可能存在的 redirect 数据进行跳转设置
+          this.$router.push(this.$route.query.redirect || '/')
         } else {
           this.$message.error(data.message)
         }
