@@ -3,26 +3,47 @@
       <el-card class="box-card">
         <div slot="header" class="clearfix">
           <!-- 使用 form 表单：行内表单 -->
-          <el-form :inline="true" :model="form" class="demo-form-inline">
-            <el-form-item label="资源名称">
-              <el-input v-model="form.name" placeholder="资源名称"></el-input>
+          <el-form :inline="true" :model="form" ref="form" class="demo-form-inline">
+            <el-form-item label="资源名称" prop="name">
+              <el-input
+                v-model="form.name"
+                placeholder="资源名称"
+                clearable
+              ></el-input>
             </el-form-item>
-            <el-form-item label="资源路径">
-              <el-input v-model="form.url" placeholder="资源路径"></el-input>
+            <el-form-item label="资源路径" prop="url">
+              <el-input
+                v-model="form.url"
+                placeholder="资源路径"
+                clearable
+              ></el-input>
             </el-form-item>
-            <el-form-item label="资源分类">
-              <el-select v-model="form.categoryId" placeholder="资源分类">
-                <el-option label="区域一" value="shanghai"></el-option>
-                <el-option label="区域二" value="beijing"></el-option>
+            <el-form-item label="资源分类" prop="categoryId">
+              <el-select v-model="form.categoryId" placeholder="资源分类" clearable>
+                <!-- 请求接口进行下拉菜单项设置 -->
+                <el-option
+                  v-for="item in resourceCategories"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                ></el-option>
               </el-select>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="onSubmit">查询</el-button>
+              <el-button
+                @click="onReset"
+              >重置</el-button>
+              <el-button
+                type="primary"
+                @click="onSubmit"
+                :disabled="loading"
+              >查询</el-button>
             </el-form-item>
           </el-form>
         </div>
         <el-table
           :data="resources"
+          v-loading="loading"
           style="width: 100%">
           <el-table-column
             label="编号"
@@ -69,6 +90,7 @@
           @current-change="handleCurrentChange"
           :current-page="form.current"
           background
+          :disabled="loading"
           :page-sizes="[10, 15, 20]"
           :page-size="form.size"
           layout="total, sizes, prev, pager, next, jumper"
@@ -78,7 +100,7 @@
     </div>
 </template>
 <script>
-import { getResourcePages } from '@/services/resource'
+import { getResourcePages, getResourceCategories } from '@/services/resource'
 export default {
   name: 'ResourceList',
   data () {
@@ -98,11 +120,18 @@ export default {
       // 数据总条数
       total: 10,
       // 存储资源列表数据
-      resources: []
+      resources: [],
+      // 存储资源分类
+      resourceCategories: [],
+      // 用于保存加载状态
+      loading: false
     }
   },
   created () {
+    // 加载资源数据
     this.loadResources()
+    // 加载资源分类数据
+    this.loadResourcesCategories()
   },
   methods: {
     // 每页显示条数变化时触发
@@ -117,19 +146,35 @@ export default {
       this.form.current = val
       this.loadResources()
     },
+    // 查询
     onSubmit () {
-      console.log('submit!')
+      console.log('this.form', this.form)
+      this.form.current = 1
+      this.loadResources()
+    },
+    // 重置
+    onReset () {
+      this.$refs.form.resetFields()
     },
     // 加载资源列表数据
     async loadResources () {
-      const { data } = await getResourcePages({
-        current: this.form.current,
-        size: this.form.size
-      })
-      console.log('成功获取资源列表数据', data)
+      // 开启加载状态
+      this.loading = true
+      const { data } = await getResourcePages(this.form)
+      // console.log('成功获取资源列表数据', data)
       if (data.code === '000000') {
         this.resources = data.data.records
         this.total = data.data.total
+        // 取消加载状态
+        this.loading = false
+      }
+    },
+    // 加载资源分类
+    async loadResourcesCategories () {
+      const { data } = await getResourceCategories()
+      console.log('成功获取资源分类数据', data)
+      if (data.code === '000000') {
+        this.resourceCategories = data.data
       }
     },
     // 编辑
